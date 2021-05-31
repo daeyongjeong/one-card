@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 룰 https://en.wikipedia.org/wiki/One-card
 
 The dealer deals out seven cards for two players, or five cards for three or more players. When all players have been dealt their hands, one card is laid face-up in the middle of the table to form the discard pile, and the rest of the deck laid face-down beside it forming the stock pile. The Jokers are used.
@@ -61,7 +60,5 @@ After drawing because of attack, it is still that player's turn; they may play o
   - X
 
 - 다음 순서
-=======
 # one-card
 One-card project for school assignment
->>>>>>> f5c0a74c4e50b59f3c50bd9c08512679f23e93a8
