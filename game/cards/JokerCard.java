@@ -1,6 +1,7 @@
-package cards;
+package game.cards;
 
-import actions.AttackAction;
+import game.Game;
+import game.actions.AttackAction;
 
 public class JokerCard extends Card {
     public JokerCard() {
@@ -8,9 +9,7 @@ public class JokerCard extends Card {
     }
 
     @Override
-    public boolean canBePlayedWith(Card criteria) {
-        if (isInAttackState() && criteria instanceof GeneralCard)
-            return false;
+    public boolean isPlayable(Game context) {
         return true;
     }
 

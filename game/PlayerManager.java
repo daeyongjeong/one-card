@@ -1,14 +1,13 @@
 package game;
 
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.Deque;
 
-import players.*;
+import game.players.Computer;
+import game.players.Player;
+import game.players.User;
 
-public class PlayManager {
-    private static PlayManager instance;
-
+public class PlayerManager {
     private Deque<Player> activePlayers;
     private Deque<Player> winners;
     private Deque<Player> losers;
@@ -16,22 +15,14 @@ public class PlayManager {
     private boolean isOneMoreTurn;
     private boolean isJumpTurn;
 
-    public static PlayManager getInstance() {
-        if (instance == null)
-            instance = new PlayManager();
-        return instance;
-    }
-
-    private PlayManager() {
+    public PlayerManager(int numberOfPlayers) {
         isPlayDirectionClockwise = true;
         isOneMoreTurn = false;
         isJumpTurn = false;
-        activePlayers = new ArrayDeque<Player>();
-        winners = new ArrayDeque<Player>();
-        losers = new ArrayDeque<Player>();
-    }
+        activePlayers = new ArrayDeque<>();
+        winners = new ArrayDeque<>();
+        losers = new ArrayDeque<>();
 
-    public void init(int numberOfPlayers) {
         activePlayers.add(new User("User"));
         for (int i = 0; i < numberOfPlayers - 1; i++)
             activePlayers.add(new Computer("Com" + (i + 1)));
@@ -39,12 +30,6 @@ public class PlayManager {
 
     public Deque<Player> getActivePlayers() {
         return activePlayers;
-    }
-
-    public boolean isGameOver() {
-        if (activePlayers.size() == 1)
-            return true;
-        return false;
     }
 
     public Player getNextPlayer() {
@@ -60,11 +45,11 @@ public class PlayManager {
     private Player getNextPlayerClockwise() {
         Player nextPlayer;
         if (isOneMoreTurn) {
-            nextPlayer = rotateNextPlayerCounterClockwise();
+            rotateNextPlayerCounterClockwise();
             nextPlayer = rotateNextPlayerClockwise();
         } else {
             if (isJumpTurn)
-                nextPlayer = rotateNextPlayerClockwise();
+                rotateNextPlayerClockwise();
             nextPlayer = rotateNextPlayerClockwise();
         }
         return nextPlayer;
@@ -73,11 +58,11 @@ public class PlayManager {
     private Player getNextPlayerCounterClockwise() {
         Player nextPlayer;
         if (isOneMoreTurn) {
-            nextPlayer = rotateNextPlayerClockwise();
+            rotateNextPlayerClockwise();
             nextPlayer = rotateNextPlayerCounterClockwise();
         } else {
             if (isJumpTurn)
-                nextPlayer = rotateNextPlayerCounterClockwise();
+                rotateNextPlayerCounterClockwise();
             nextPlayer = rotateNextPlayerCounterClockwise();
         }
         return nextPlayer;
@@ -95,21 +80,7 @@ public class PlayManager {
         return nextPlayer;
     }
 
-    private void reset() {
-        isOneMoreTurn = false;
-        isJumpTurn = false;
-    }
-
-    public void playerWins(Player player) {
-        activePlayers.remove(player);
-        winners.addLast(player);
-    }
-
-    public void playerLoses(Player player) {
-        activePlayers.remove(player);
-        losers.addFirst(player);
-    }
-
+    /** actions */
     public void setJumpTurn() {
         isJumpTurn = true;
     }
@@ -120,13 +91,34 @@ public class PlayManager {
 
     public void reversePlayDirection() {
         isPlayDirectionClockwise = !isPlayDirectionClockwise;
+        getNextPlayer();
     }
 
-    public Deque<Player> getWinners() {
-        return winners;
+    private void reset() {
+        isOneMoreTurn = false;
+        isJumpTurn = false;
     }
 
-    public Deque<Player> getLosers() {
-        return losers;
+    /** game over */
+    public void winPlayer(Player player) {
+        activePlayers.remove(player);
+        winners.addLast(player);
+    }
+
+    public void losePlayer(Player player) {
+        activePlayers.remove(player);
+        losers.addFirst(player);
+    }
+
+    public boolean isGameOver() {
+        return activePlayers.size() == 1;
+    }
+
+    public Deque<Player> getPlayersByRanking() {
+        Deque<Player> result = new ArrayDeque<>();
+        result.addAll(winners);
+        result.addAll(activePlayers);
+        result.addAll(losers);
+        return result;
     }
 }

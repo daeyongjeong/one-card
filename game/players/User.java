@@ -1,7 +1,7 @@
-package players;
+package game.players;
 
-import cards.Card;
-import cards.Suit;
+import game.cards.Card;
+import game.cards.Suit;
 
 public class User extends Player {
 
@@ -13,7 +13,8 @@ public class User extends Player {
     protected Card getNextPlayCard() {
         view.showHandWithPlayableCard(hand, playableCards);
         while (true) {
-            int index = view.promptNextInt("Type index for play card.");
+            view.showPromptMessage("Type index for play card.");
+            int index = view.getNextInt();
 
             if (index >= 0 && index < hand.size()) {
                 Card nextPlayCard = hand.get(index);
@@ -28,11 +29,11 @@ public class User extends Player {
     public Suit changeSuit() {
         view.showAllSuitsWithIndex();
         while (true) {
-            int index = view.promptNextInt("Type index for change suit.");
+            view.showPromptMessage("Type index for change suit.");
+            int index = view.getNextInt();
 
             if (index >= 0 && index < Suit.values().length) {
-                Suit changedSuit = Suit.values()[index];
-                return changedSuit;
+                return Suit.values()[index];
             }
         }
     }

@@ -1,113 +1,167 @@
 package game;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import cards.Card;
-import collections.Deck;
-import players.Player;
+import game.cards.Card;
+import game.cards.GeneralCard;
+import game.cards.Suit;
+import game.collections.CardStack;
+import game.collections.Deck;
+import game.players.Player;
 
 public class Game {
-    private final int NUMBER_OF_PLAYERS;
-    private final int NUMBER_OF_INITIAL_CARDS;
+    private View view = new View();
+    private PlayerManager playerManager;
+    private Player currentPlayer;
 
     private Deck deck;
-    private PlayManager playManager;
-    private TableManager tableManager;
+    private CardStack stockPile;
+    private CardStack discardPile;
 
-    public static void run() throws Exception {
-        run(3);
-    }
+    private int attackLevel;
+    private Suit changedSuit;
 
-    public static void run(int numberOfPlayers) throws Exception {
-        if (numberOfPlayers < 2 || numberOfPlayers > 5)
-            throw new Exception("the number of players must be between 2 and 5");
-        new Game(numberOfPlayers);
-    }
-
-    // setup game
+    /** game logic */
     public Game(int numberOfPlayers) {
-        NUMBER_OF_PLAYERS = numberOfPlayers;
-        NUMBER_OF_INITIAL_CARDS = getNumberOfInitialCards(numberOfPlayers);
+        init(numberOfPlayers);
+        play();
+        gameOver();
+    }
 
+    private void init(int numberOfPlayers) {
         setupDeck();
-        setupPlayers();
-        initialDeal();
-        setupTable();
+        setupPlayers(numberOfPlayers);
+        initialDeal(numberOfPlayers);
         faceUpFirstCard();
         faceDownLeftovers();
-        System.out.println("setup done");
-        play();
+        resetAttackLevel();
     }
 
-    private int getNumberOfInitialCards(int numberOfPlayers) {
-        if (numberOfPlayers == 2)
-            return 7;
-        else
-            return 5;
+    private void play() {
+        while (!playerManager.isGameOver()) {
+            currentPlayer = playerManager.getNextPlayer();
+            currentPlayer.turn(this);
+            sleep(1000);
+        }
     }
 
+    private void gameOver() {
+        view.showRanking(playerManager.getPlayersByRanking());
+        sleep(3000);
+    }
+
+    private void sleep(int ms) {
+        try {
+            Thread.sleep(ms); // for slow down game speed
+        } catch (InterruptedException e) {
+        }
+    }
+
+    /** init */
     private void setupDeck() {
         deck = new Deck();
         deck.shuffle();
     }
 
-    private void setupPlayers() {
-        playManager = PlayManager.getInstance();
-        playManager.init(NUMBER_OF_PLAYERS);
-        System.out.println(playManager.getActivePlayers().size());
+    private void setupPlayers(int numberOfPlayers) {
+        playerManager = new PlayerManager(numberOfPlayers);
     }
 
-    private void initialDeal() {
-        Deque<Player> activePlayers = playManager.getActivePlayers();
-        for (int i = 0; i < NUMBER_OF_INITIAL_CARDS; i++) {
-            for (Player player : activePlayers) {
+    private void initialDeal(int numberOfPlayers) {
+        for (int i = 0; i < getNumberOfInitialCards(numberOfPlayers); i++) {
+            for (Player player : playerManager.getActivePlayers()) {
                 Card card = deck.draw();
                 player.receiveCard(card);
             }
         }
     }
 
-    private void setupTable() {
-        tableManager = TableManager.getInstance();
+    private int getNumberOfInitialCards(int numberOfPlayers) {
+        if (numberOfPlayers == 2 || numberOfPlayers == 3)
+            return 7;
+        return 5;
     }
 
     private void faceUpFirstCard() {
-        Card firstCard = deck.draw();
-        tableManager.setupDiscardPile(firstCard);
+        discardPile = new CardStack();
+        Card card = deck.draw();
+        discardPile.push(card);
+
+        if (card instanceof GeneralCard && ((GeneralCard) card).isSevenCard())
+            changedSuit = ((GeneralCard) card).getSuit();
     }
 
     private void faceDownLeftovers() {
-        tableManager.setupStockPile(deck);
+        stockPile = new CardStack();
+        stockPile.addAll(deck);
     }
 
-    // update game
-    private void play() {
-        while (!isGameOver())
-            gamePlay();
-        gameOver();
-        printResult();
+    /** players */
+    public Player getCurrentPlayer() {
+        return currentPlayer;
     }
 
-    private boolean isGameOver() {
-        return playManager.isGameOver();
+    public void winPlayer(Player player) {
+        playerManager.winPlayer(player);
     }
 
-    private void gamePlay() {
-        Player player = playManager.getNextPlayer();
-        player.playTurn();
+    public void losePlayer(Player player) {
+        playerManager.losePlayer(player);
     }
 
-    private void gameOver() {
-        Player player = playManager.getNextPlayer();
-        playManager.playerLoses(player);
+    /** cards */
+    public Card getLastCard() {
+        return discardPile.peek();
     }
 
-    private void printResult() {
-        Deque<Player> result = new ArrayDeque<Player>();
-        result.addAll(playManager.getWinners());
-        result.addAll(playManager.getLosers());
-        for (Player player : result) {
-            System.out.println(player.getName());
+    public Card draw() {
+        if (stockPile.empty()) {
+            Card temp = discardPile.pop();
+            stockPile.addAll(discardPile);
+            stockPile.shuffle();
+            discardPile.clear();
+            discardPile.push(temp);
         }
+        return stockPile.pop();
+    }
+
+    public void playCard(Card card) {
+        discardPile.push(card);
+    }
+
+    /** actions */
+    public boolean isAttackState() {
+        return attackLevel > 0;
+    }
+
+    public int getAttackLevel() {
+        return attackLevel;
+    }
+
+    public void addAttackLevel(int attackLevel) {
+        this.attackLevel += attackLevel;
+    }
+
+    public void resetAttackLevel() {
+        attackLevel = 0;
+    }
+
+    public Suit getChangedSuit() {
+        return changedSuit;
+    }
+
+    public void setChangedSuit(Suit changedSuit) {
+        this.changedSuit = changedSuit;
+        view.showChangedSuit(changedSuit);
+    }
+
+    public void setJumpTurn() {
+        playerManager.setJumpTurn();
+    }
+
+    public void setOneMoreTurn() {
+        playerManager.setOneMoreTurn();
+    }
+
+    public void reversePlayDirection() {
+        playerManager.reversePlayDirection();
     }
 }

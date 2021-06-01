@@ -1,6 +1,6 @@
-package collections;
+package game.collections;
 
-import cards.*;
+import game.cards.*;
 
 public class Deck extends CardList {
     public Deck() {

@@ -1,20 +1,23 @@
-package players;
+package game.players;
 
 import java.util.Random;
-import cards.Card;
-import cards.Suit;
+
+import game.cards.Card;
+import game.cards.Suit;
 
 public class Computer extends Player {
+    private Random random;
 
     public Computer(String name) {
         super(name);
+        random = new Random();
     }
 
     @Override
     protected Card getNextPlayCard() {
+        sleep(random.nextInt(500) + 500);
         while (true) {
             int index = 0;
-            Random random = new Random();
             index = random.nextInt(hand.size());
 
             if (index >= 0 && index < hand.size()) {
@@ -26,10 +29,16 @@ public class Computer extends Player {
         }
     }
 
+    private void sleep(int ms) {
+        try {
+            Thread.sleep(ms); // for slow down game speed
+        } catch (InterruptedException e) {
+        }
+    }
+
     @Override
     public Suit changeSuit() {
         Suit[] suits = Suit.values();
-        Random random = new Random();
         int index = random.nextInt(suits.length);
         return suits[index];
     }

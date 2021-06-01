@@ -1,8 +1,9 @@
-package collections;
+package game.collections;
 
 import java.util.Collections;
 import java.util.LinkedList;
-import cards.Card;
+
+import game.cards.Card;
 
 public class CardList extends LinkedList<Card> {
     public void shuffle() {
